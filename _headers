@@ -1,0 +1,5 @@
+# Cache busting for manifest and icons
+/manifest.json
+  Cache-Control: no-cache, no-store, must-revalidate
+/icon-*.png
+  Cache-Control: no-cache, no-store, must-revalidate

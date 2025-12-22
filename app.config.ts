@@ -65,6 +65,8 @@ const config: ExpoConfig = {
     output: "static",
     favicon: "./assets/images/favicon.png",
     bundler: "metro",
+    // Add custom HTML template with PWA meta tags
+    template: "./public/app.html",
   },
   plugins: [
     "expo-router",
