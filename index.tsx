@@ -361,7 +361,7 @@ export default function HomeScreen() {
               router.replace('/login');
             }}
           >
-            <IconSymbol name="arrow.right.square" size={24} color="rgba(255,255,255,0.9)" />
+            <ThemedText style={styles.logoutText}>Logout</ThemedText>
           </Pressable>
         </View>
 
@@ -528,11 +528,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   logoutButton: {
-    width: 44,
-    height: 44,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  logoutText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

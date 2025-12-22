@@ -111,6 +111,9 @@ async function fetchSheet(sheetName: string) {
   // Add timestamp to bust cache and always get fresh data
   const timestamp = Date.now();
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&_=${timestamp}`;
+  
+  console.log(`[fetchSheet] Fetching sheet: ${sheetName}`);
+  
   const response = await fetch(url, {
     cache: 'no-store', // Prevent browser caching
     headers: {
@@ -120,23 +123,58 @@ async function fetchSheet(sheetName: string) {
   const text = await response.text();
   // Remove the callback wrapper
   const json = JSON.parse(text.substring(47).slice(0, -2));
-  return json.table.rows.map((row: any) => row.c.map((cell: any) => cell?.v || ''));
+  
+  const rows = json.table.rows.map((row: any) => row.c.map((cell: any) => cell?.v || ''));
+  
+  console.log(`[fetchSheet] ${sheetName} returned ${rows.length} total rows (including header)`);
+  
+  return rows;
 }
 
 /**
- * Fetch employees from the Employees sheet
+ * Fetch employees from the Logins sheet
  */
 export async function fetchEmployees(): Promise<Employee[]> {
-  const rows = await fetchSheet('Employees');
-  return rows.slice(1).map((row: string[]) => ({
-    name: row[0] || '',
-    title: row[1] || '',
-    team: row[2] || '',
-    role: row[3] || '',
-    phone: row[4] || '',
-    email: row[5] || '',
-    repAirportCode: row[6] || '',
-  })).filter((emp: Employee) => emp.name && emp.email); // Filter out empty rows
+  const rows = await fetchSheet('Logins');
+  
+  console.log(`[fetchEmployees] Total rows from sheet (including header): ${rows.length}`);
+  console.log(`[fetchEmployees] First row (header):`, rows[0]);
+  
+  const allEmployees = rows.slice(1).map((row: string[], index: number) => {
+    const emp = {
+      name: row[0] || '',        // Column A: Name
+      email: row[1] || '',       // Column B: Email
+      // row[2] is Password - we don't need it
+      title: row[3] || '',       // Column D: Title (also used as role)
+      team: row[4] || '',        // Column E: Team
+      role: row[3] || '',        // Column D: Title (using as role)
+      phone: '',                 // Not in this sheet
+      repAirportCode: '',        // Not in this sheet
+    };
+    
+    const rowNumber = index + 2; // +2 because: +1 for 0-based index, +1 for header row
+    
+    // Log each row for debugging
+    if (!emp.name && !emp.email) {
+      console.log(`[fetchEmployees] Row ${rowNumber} is COMPLETELY EMPTY (will be filtered)`);
+    } else if (!emp.email) {
+      console.warn(`[fetchEmployees] Row ${rowNumber} missing EMAIL: Name="${emp.name}", Team="${emp.team}"`);
+    } else if (!emp.name) {
+      console.warn(`[fetchEmployees] Row ${rowNumber} missing NAME: Email="${emp.email}"`);
+    } else {
+      console.log(`[fetchEmployees] Row ${rowNumber} OK: ${emp.name} (${emp.email})`);
+    }
+    
+    return emp;
+  });
+  
+  // Only filter out completely empty rows
+  const employees = allEmployees.filter((emp: Employee) => emp.name || emp.email);
+  
+  console.log(`[fetchEmployees] ✅ Returning ${employees.length} employees (filtered out ${allEmployees.length - employees.length} completely empty rows)`);
+  console.log(`[fetchEmployees] Employee list:`, employees.map(e => e.name || e.email));
+  
+  return employees;
 }
 
 /**
