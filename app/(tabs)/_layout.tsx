@@ -65,36 +65,54 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
+          tabBarIcon: ({ color, focused }) => (
+            <IconSymbol size={28} name={focused ? "house.fill" : "house"} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="survey"
         options={{
           title: "Survey",
+          tabBarIcon: ({ color, focused }) => (
+            <IconSymbol size={28} name={focused ? "list.clipboard.fill" : "list.clipboard"} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="calculator"
         options={{
           title: "Calculator",
+          tabBarIcon: ({ color, focused }) => (
+            <IconSymbol size={28} name={focused ? "number.square.fill" : "number.square"} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="expenses"
         options={{
           title: "Expenses",
+          tabBarIcon: ({ color, focused }) => (
+            <IconSymbol size={28} name={focused ? "dollarsign.circle.fill" : "dollarsign.circle"} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="payroll"
         options={{
           title: "Payroll",
+          tabBarIcon: ({ color, focused }) => (
+            <IconSymbol size={28} name={focused ? "creditcard.fill" : "creditcard"} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="sales"
         options={{
           title: "Sales",
+          tabBarIcon: ({ color, focused }) => (
+            <IconSymbol size={28} name={focused ? "chart.bar.fill" : "chart.bar"} color={color} />
+          ),
         }}
       />
     </Tabs>
