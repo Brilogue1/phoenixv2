@@ -127,13 +127,22 @@ export default function HomeScreen() {
     loadData();
     loadLoggedInUser();
     
+    // Set up auto-refresh every 2 minutes (120000 ms)
+    const autoRefreshInterval = setInterval(() => {
+      console.log('[HomeScreen] Auto-refresh triggered (2 min interval)');
+      loadData();
+    }, 120000); // 2 minutes
+    
     // Failsafe: force loading to false after 5 seconds
     const timeout = setTimeout(() => {
       console.log('[HomeScreen] Timeout reached, forcing loading to false');
       setLoading(false);
     }, 5000);
     
-    return () => clearTimeout(timeout);
+    return () => {
+      clearInterval(autoRefreshInterval); // Clean up interval when component unmounts
+      clearTimeout(timeout);
+    };
   }, [loadData]);
 
   const loadLoggedInUser = async () => {
