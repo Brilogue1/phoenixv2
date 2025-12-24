@@ -38,8 +38,8 @@ export default function PayrollScreen() {
           </ThemedText>
           <View style={styles.table}>
             <View style={[styles.tableHeader, { backgroundColor: '#f0f0f0' }]}>
-              <ThemedText style={[styles.tableHeaderText, { flex: 1 }]}>Net Volume</ThemedText>
-              <ThemedText style={[styles.tableHeaderText, { width: 80, textAlign: 'right' }]}>Rate</ThemedText>
+              <ThemedText style={[styles.tableHeaderText, { flex: 1, color: '#333' }]}>Net Volume</ThemedText>
+              <ThemedText style={[styles.tableHeaderText, { width: 80, textAlign: 'right', color: '#333' }]}>Rate</ThemedText>
             </View>
             <View style={styles.tableRow}>
               <ThemedText style={[styles.tableCell, { color: secondaryColor }]}>$0 - $6,489</ThemedText>
@@ -62,7 +62,7 @@ export default function PayrollScreen() {
               <ThemedText style={[styles.tableCell, styles.rateCell, { color: '#34C759' }]}>16%</ThemedText>
             </View>
             <View style={[styles.tableRow, { backgroundColor: '#f9f9f9' }]}>
-              <ThemedText style={[styles.tableCell, styles.boldText]}>$20,001 & UP</ThemedText>
+              <ThemedText style={[styles.tableCell, styles.boldText, { color: '#333' }]}>$20,001 & UP</ThemedText>
               <ThemedText style={[styles.tableCell, styles.rateCell, styles.boldText, { color: '#34C759' }]}>20%</ThemedText>
             </View>
           </View>
@@ -75,8 +75,8 @@ export default function PayrollScreen() {
           </ThemedText>
           <View style={styles.table}>
             <View style={[styles.tableHeader, { backgroundColor: '#f0f0f0' }]}>
-              <ThemedText style={[styles.tableHeaderText, { flex: 1 }]}>Net Volume</ThemedText>
-              <ThemedText style={[styles.tableHeaderText, { width: 80, textAlign: 'right' }]}>Bonus</ThemedText>
+              <ThemedText style={[styles.tableHeaderText, { flex: 1, color: '#333' }]}>Net Volume</ThemedText>
+              <ThemedText style={[styles.tableHeaderText, { width: 80, textAlign: 'right', color: '#333' }]}>Bonus</ThemedText>
             </View>
             <View style={styles.tableRow}>
               <ThemedText style={[styles.tableCell, { color: secondaryColor }]}>$75,000 - $104,999</ThemedText>
@@ -95,7 +95,7 @@ export default function PayrollScreen() {
               <ThemedText style={[styles.tableCell, styles.rateCell, { color: '#FF9500' }]}>8%</ThemedText>
             </View>
             <View style={[styles.tableRow, { backgroundColor: '#f9f9f9' }]}>
-              <ThemedText style={[styles.tableCell, styles.boldText]}>$180,000 & UP</ThemedText>
+              <ThemedText style={[styles.tableCell, styles.boldText, { color: '#333' }]}>$180,000 & UP</ThemedText>
               <ThemedText style={[styles.tableCell, styles.rateCell, styles.boldText, { color: '#FF9500' }]}>10%</ThemedText>
             </View>
           </View>
