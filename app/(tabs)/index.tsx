@@ -309,6 +309,37 @@ export default function HomeScreen() {
         {updates
           .filter(update => {
             console.log('[HomeScreen] Filtering update:', update.id, 'Message:', update.message, 'Target:', update.target);
+            console.log('[HomeScreen] Update dates - Start:', update.startDate, 'End:', update.endDate);
+            
+            // Check date range if start/end dates are provided
+            if (update.startDate || update.endDate) {
+              const now = new Date();
+              now.setHours(0, 0, 0, 0); // Set to midnight for date comparison
+              
+              // Parse start date (format: MM/DD/YYYY)
+              if (update.startDate) {
+                const [month, day, year] = update.startDate.split('/').map(Number);
+                const startDate = new Date(year, month - 1, day, 5, 0, 0); // 5am on start date
+                
+                if (now < startDate) {
+                  console.log('[HomeScreen] Current date before start date - HIDING');
+                  return false;
+                }
+              }
+              
+              // Parse end date (format: MM/DD/YYYY)
+              if (update.endDate) {
+                const [month, day, year] = update.endDate.split('/').map(Number);
+                const endDate = new Date(year, month - 1, day, 23, 59, 59); // Midnight (11:59:59pm) on end date
+                
+                if (now > endDate) {
+                  console.log('[HomeScreen] Current date after end date - HIDING');
+                  return false;
+                }
+              }
+              
+              console.log('[HomeScreen] Date is within range');
+            }
             
             // Filter out dismissed updates
             if (dismissedUpdates.includes(update.id)) {
