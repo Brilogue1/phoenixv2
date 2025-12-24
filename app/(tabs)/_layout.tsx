@@ -51,13 +51,15 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarActiveTintColor: '#8B5CF6', // Bright purple when active
+        tabBarInactiveTintColor: '#A78BFA', // Lighter purple when inactive (always visible)
         headerShown: false,
         tabBarButton: HapticTab,
         // Ensure tab bar respects bottom safe area for devices with home indicators
         tabBarStyle: {
           paddingBottom: insets.bottom,
           height: 49 + insets.bottom, // Default tab bar height (49) + safe area
+          backgroundColor: '#FFFFFF', // White background for contrast
         },
       }}
     >
@@ -66,7 +68,11 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol size={28} name={focused ? "house.fill" : "house"} color={color} />
+            <IconSymbol 
+              size={28} 
+              name={focused ? "house.fill" : "house"} 
+              color={color || '#8B5CF6'} 
+            />
           ),
         }}
       />
@@ -75,7 +81,11 @@ export default function TabLayout() {
         options={{
           title: "Survey",
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol size={28} name={focused ? "list.clipboard.fill" : "list.clipboard"} color={color} />
+            <IconSymbol 
+              size={28} 
+              name={focused ? "list.clipboard.fill" : "list.clipboard"} 
+              color={color || '#8B5CF6'} 
+            />
           ),
         }}
       />
@@ -84,7 +94,11 @@ export default function TabLayout() {
         options={{
           title: "Calculator",
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol size={28} name={focused ? "number.square.fill" : "number.square"} color={color} />
+            <IconSymbol 
+              size={28} 
+              name={focused ? "number.square.fill" : "number.square"} 
+              color={color || '#8B5CF6'} 
+            />
           ),
         }}
       />
@@ -93,7 +107,11 @@ export default function TabLayout() {
         options={{
           title: "Expenses",
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol size={28} name={focused ? "dollarsign.circle.fill" : "dollarsign.circle"} color={color} />
+            <IconSymbol 
+              size={28} 
+              name={focused ? "dollarsign.circle.fill" : "dollarsign.circle"} 
+              color={color || '#8B5CF6'} 
+            />
           ),
         }}
       />
@@ -102,7 +120,11 @@ export default function TabLayout() {
         options={{
           title: "Payroll",
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol size={28} name={focused ? "creditcard.fill" : "creditcard"} color={color} />
+            <IconSymbol 
+              size={28} 
+              name={focused ? "creditcard.fill" : "creditcard"} 
+              color={color || '#8B5CF6'} 
+            />
           ),
         }}
       />
@@ -111,7 +133,11 @@ export default function TabLayout() {
         options={{
           title: "Sales",
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol size={28} name={focused ? "chart.bar.fill" : "chart.bar"} color={color} />
+            <IconSymbol 
+              size={28} 
+              name={focused ? "chart.bar.fill" : "chart.bar"} 
+              color={color || '#8B5CF6'} 
+            />
           ),
         }}
       />
