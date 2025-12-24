@@ -360,11 +360,13 @@ export interface Update {
   message: string;
   target: string; // "All", team name like "KYT2", or specific email
   date: string;
+  startDate?: string; // Optional: MM/DD/YYYY format
+  endDate?: string;   // Optional: MM/DD/YYYY format
 }
 
 /**
  * Fetch updates from the Updates sheet
- * Columns: A=ID, B=Message, C=Target, D=Date
+ * Columns: A=ID, B=Message, C=Target, D=StartDate, E=EndDate
  */
 export async function fetchUpdates(): Promise<Update[]> {
   try {
@@ -374,8 +376,12 @@ export async function fetchUpdates(): Promise<Update[]> {
       id: row[0] || `update-${index}`,
       message: row[1] || '',
       target: row[2] || 'All',
-      date: row[3] || '',
+      date: row[3] || '', // Keep for backwards compatibility (startDate)
+      startDate: row[3] || undefined, // Column D: Start date
+      endDate: row[4] || undefined,   // Column E: End date
     })).filter((update: Update) => update.message); // Filter out empty rows
+    
+    console.log('[fetchUpdates] Loaded updates with dates:', updates);
     
     return updates;
   } catch (error) {
