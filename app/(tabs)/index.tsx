@@ -127,13 +127,22 @@ export default function HomeScreen() {
     loadData();
     loadLoggedInUser();
     
+    // Set up auto-refresh every 2 minutes (120000 ms)
+    const autoRefreshInterval = setInterval(() => {
+      console.log('[HomeScreen] Auto-refresh triggered (2 min interval)');
+      loadData();
+    }, 120000); // 2 minutes
+    
     // Failsafe: force loading to false after 5 seconds
     const timeout = setTimeout(() => {
       console.log('[HomeScreen] Timeout reached, forcing loading to false');
       setLoading(false);
     }, 5000);
     
-    return () => clearTimeout(timeout);
+    return () => {
+      clearInterval(autoRefreshInterval); // Clean up interval when component unmounts
+      clearTimeout(timeout);
+    };
   }, [loadData]);
 
   const loadLoggedInUser = async () => {
@@ -142,16 +151,28 @@ export default function HomeScreen() {
       if (userStr) {
         const user = JSON.parse(userStr);
         setLoggedInUser(user);
-        // If user is a Rep, set their profile as the test profile automatically
-        if (!isExecutiveRole(user.role) && !isTeamLeadRole(user.role)) {
-          setTestProfile({
+        
+        // Check if test_profile already exists
+        const testProfileStr = await AsyncStorage.getItem('test_profile');
+        
+        // If no test_profile exists, set it to the logged-in user's profile (for all roles)
+        if (!testProfileStr) {
+          const userProfile = {
             name: user.name,
             email: user.email,
             team: user.team,
             role: user.role,
-            title: '',
-            phone: '',
-            repAirportCode: '',
+            title: user.title || '',
+            phone: user.phone || '',
+            repAirportCode: user.repAirportCode || '',
+          };
+          await AsyncStorage.setItem('test_profile', JSON.stringify(userProfile));
+          setTestProfile({
+            ...userProfile,
+            isOwner: isExecutiveRole(user.role),
+            isTeamLead: isTeamLeadRole(user.role),
+            canSeeAllTeams: isExecutiveRole(user.role),
+            canSeeTeamData: isTeamLeadRole(user.role) || isExecutiveRole(user.role),
           });
         }
       }
@@ -313,29 +334,45 @@ export default function HomeScreen() {
           ))}
 
         {/* User Profile Card */}
-        <Pressable
-          style={styles.profileCard}
-          onPress={() => {
-            // Only show profile selector for executives and Team Leads
-            if (loggedInUser && canSwitchProfiles(loggedInUser.role)) {
-              setShowProfileSelector(true);
-            }
-          }}
-        >
-          <Image
-            source={require('@/assets/images/phoenix-logo.png')}
-            style={styles.phoenixLogo}
-          />
-          <View style={styles.profileInfo}>
-            <ThemedText type="subtitle" style={{ color: '#fff' }}>
-              {displayProfile.name}
-            </ThemedText>
-            <ThemedText style={{ color: 'rgba(255,255,255,0.8)' }}>{displayProfile.team}</ThemedText>
-            {loggedInUser && canSwitchProfiles(loggedInUser.role) && (
-              <ThemedText style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>Tap to change profile</ThemedText>
-            )}
-          </View>
-        </Pressable>
+        <View style={styles.profileCard}>
+          <Pressable
+            style={styles.profileCardPressable}
+            onPress={() => {
+              // Only show profile selector for executives and Team Leads
+              if (loggedInUser && canSwitchProfiles(loggedInUser.role)) {
+                setShowProfileSelector(true);
+              }
+            }}
+          >
+            <Image
+              source={require('@/assets/images/phoenix-logo.png')}
+              style={styles.phoenixLogo}
+            />
+            <View style={styles.profileInfo}>
+              <ThemedText type="subtitle" style={{ color: '#fff' }}>
+                {displayProfile.name}
+              </ThemedText>
+              <ThemedText style={{ color: 'rgba(255,255,255,0.8)' }}>{displayProfile.team}</ThemedText>
+              {loggedInUser && canSwitchProfiles(loggedInUser.role) && (
+                <ThemedText style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>Tap to change profile</ThemedText>
+              )}
+            </View>
+          </Pressable>
+          
+          {/* Logout Button */}
+          <Pressable
+            style={styles.logoutButton}
+            onPress={async () => {
+              // Clear all stored data
+              await AsyncStorage.removeItem('logged_in_user');
+              await AsyncStorage.removeItem('test_profile');
+              // Navigate to login
+              router.replace('/login');
+            }}
+          >
+            <ThemedText style={styles.logoutText}>Logout</ThemedText>
+          </Pressable>
+        </View>
 
         {/* Week Navigation */}
         <WeekNavigation
@@ -485,6 +522,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     gap: 12,
   },
+  profileCardPressable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
   phoenixLogo: {
     width: 100,
     height: 100,
@@ -492,5 +535,20 @@ const styles = StyleSheet.create({
   },
   profileInfo: {
     flex: 1,
+  },
+  logoutButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  logoutText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
