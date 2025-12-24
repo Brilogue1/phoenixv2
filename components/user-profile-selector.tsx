@@ -33,6 +33,7 @@ export function UserProfileSelector({ visible, onClose, onSelectProfile }: UserP
 
   useEffect(() => {
     if (visible) {
+      // Always fetch fresh data when modal opens to catch new employees
       loadProfiles();
     }
   }, [visible]);
@@ -44,7 +45,11 @@ export function UserProfileSelector({ visible, onClose, onSelectProfile }: UserP
       const loggedInUserStr = await AsyncStorage.getItem('logged_in_user');
       const loggedInUser = loggedInUserStr ? JSON.parse(loggedInUserStr) : null;
 
+      console.log('[UserProfileSelector] Fetching employees...');
       const employees = await fetchEmployees();
+      console.log(`[UserProfileSelector] Fetched ${employees.length} employees`);
+      console.log('[UserProfileSelector] Employee names:', employees.map(e => e.name));
+      
       // Convert Employee[] to TestProfile[]
       let testProfiles = employees.map((emp: Employee) => ({
         name: emp.name,
@@ -58,26 +63,34 @@ export function UserProfileSelector({ visible, onClose, onSelectProfile }: UserP
 
       // Filter profiles based on logged-in user's role
       if (loggedInUser) {
+        console.log(`[UserProfileSelector] Logged in as: ${loggedInUser.name} (${loggedInUser.role})`);
+        
         if (isExecutiveRole(loggedInUser.role)) {
           // Executives (Owner, VO, CEO, COO, Director) see all profiles
+          console.log('[UserProfileSelector] Executive role - showing ALL profiles');
           setProfiles(testProfiles);
         } else if (isTeamLeadRole(loggedInUser.role)) {
           // Team Lead sees only their team members
           const filteredProfiles = testProfiles.filter(
             (profile) => profile.team === loggedInUser.team
           );
+          console.log(`[UserProfileSelector] Team Lead role - showing ${filteredProfiles.length} profiles from team ${loggedInUser.team}`);
           setProfiles(filteredProfiles);
         } else {
           // Reps don't see profile selector (but if they somehow access it, show only themselves)
           const filteredProfiles = testProfiles.filter(
             (profile) => profile.email === loggedInUser.email
           );
+          console.log(`[UserProfileSelector] Rep role - showing only own profile`);
           setProfiles(filteredProfiles);
         }
       } else {
         // No logged-in user, show all (fallback)
+        console.log('[UserProfileSelector] No logged in user - showing all profiles');
         setProfiles(testProfiles);
       }
+      
+      console.log(`[UserProfileSelector] Final profile count: ${testProfiles.length}`);
     } catch (error) {
       console.error('Failed to load employees:', error);
       // Fallback to default profiles if fetch fails
