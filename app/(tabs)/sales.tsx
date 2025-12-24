@@ -36,6 +36,16 @@ export default function SalesScreen() {
   useEffect(() => {
     loadProfile();
     loadSalesData();
+    
+    // Set up auto-refresh every 2 minutes (120000 ms)
+    const autoRefreshInterval = setInterval(() => {
+      console.log('[SalesScreen] Auto-refresh triggered (2 min interval)');
+      loadSalesData();
+    }, 120000); // 2 minutes
+    
+    return () => {
+      clearInterval(autoRefreshInterval); // Clean up interval when component unmounts
+    };
   }, []);
 
   const loadProfile = async () => {
@@ -97,7 +107,10 @@ export default function SalesScreen() {
   const loadSalesData = async () => {
     setLoading(true);
     try {
+      console.log('[SalesScreen] Loading sales data...');
       const salesData = await fetchSales();
+      console.log(`[SalesScreen] Loaded ${salesData.length} sales records`);
+      console.log('[SalesScreen] First few sales:', salesData.slice(0, 3));
       setSales(salesData);
       
       // Extract unique months from sales data
@@ -116,15 +129,19 @@ export default function SalesScreen() {
         return dateA.getTime() - dateB.getTime();
       });
       
+      console.log(`[SalesScreen] Found ${sortedMonths.length} unique months:`, sortedMonths);
+      
       setAvailableMonths(sortedMonths);
       if (sortedMonths.length > 0) {
         const defaultMonth = sortedMonths[sortedMonths.length - 1];
+        console.log('[SalesScreen] Setting default month to:', defaultMonth);
         setSelectedMonth(defaultMonth);
       } else {
+        console.log('[SalesScreen] No months found, setting to All Sales');
         setSelectedMonth('All Sales');
       }
     } catch (error) {
-      console.error('Error loading sales data:', error);
+      console.error('[SalesScreen] Error loading sales data:', error);
     } finally {
       setLoading(false);
     }
@@ -204,6 +221,11 @@ export default function SalesScreen() {
 
   const isOwner = isExecutiveRole(selectedEmployee?.role);
   const isTeamLead = isTeamLeadRole(selectedEmployee?.role);
+
+  console.log('[SalesScreen] Selected employee:', selectedEmployee?.name, selectedEmployee?.role);
+  console.log('[SalesScreen] isOwner:', isOwner, 'isTeamLead:', isTeamLead);
+  console.log('[SalesScreen] Total sales:', sales.length, 'Filtered sales:', filteredSales.length);
+  console.log('[SalesScreen] Team summaries:', teamSummaries.length, 'Rep summaries:', repSummaries.length);
 
   // Filter data based on role
   const myRep = repSummaries.find(r => r.repEmail === selectedEmployee?.email);
