@@ -36,6 +36,17 @@ export default function LoginScreen() {
         // Save user info to AsyncStorage
         await AsyncStorage.setItem('logged_in_user', JSON.stringify(user));
         
+        // Set their own profile as the default test_profile for everyone
+        await AsyncStorage.setItem('test_profile', JSON.stringify({
+          name: user.name,
+          email: user.email,
+          team: user.team,
+          role: user.role,
+          title: user.title || '',
+          phone: user.phone || '',
+          repAirportCode: user.repAirportCode || '',
+        }));
+        
         // Navigate to home
         router.replace('/(tabs)');
       } else {
