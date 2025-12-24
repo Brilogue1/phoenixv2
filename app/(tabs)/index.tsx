@@ -92,6 +92,10 @@ export default function HomeScreen() {
       setRentalCars(carsData);
       setHotelInfo(hotelData);
       setUpdates(updatesData);
+      
+      console.log('[HomeScreen] Loaded updates:', updatesData.length);
+      console.log('[HomeScreen] Updates data:', updatesData);
+      console.log('[HomeScreen] Dismissed updates:', dismissedUpdates);
       console.log('[HomeScreen] State updated, setting loading to false');
     } catch (error) {
       console.error('[HomeScreen] Error loading itinerary data:', error);
@@ -304,22 +308,42 @@ export default function HomeScreen() {
         {/* Notification Banners */}
         {updates
           .filter(update => {
+            console.log('[HomeScreen] Filtering update:', update.id, 'Message:', update.message, 'Target:', update.target);
+            
             // Filter out dismissed updates
-            if (dismissedUpdates.includes(update.id)) return false;
+            if (dismissedUpdates.includes(update.id)) {
+              console.log('[HomeScreen] Update', update.id, 'is dismissed');
+              return false;
+            }
             
             // Check targeting
             const currentProfile = testProfile || profile;
-            if (!currentProfile) return update.target === 'All';
+            console.log('[HomeScreen] Current profile for filtering:', currentProfile?.email, currentProfile?.team);
+            
+            if (!currentProfile) {
+              console.log('[HomeScreen] No profile, showing only All');
+              return update.target === 'All';
+            }
             
             // Show if targeted to All
-            if (update.target === 'All') return true;
+            if (update.target === 'All') {
+              console.log('[HomeScreen] Update targets All - SHOWING');
+              return true;
+            }
             
             // Show if targeted to user's team
-            if (update.target === currentProfile.team) return true;
+            if (update.target === currentProfile.team) {
+              console.log('[HomeScreen] Update targets team', currentProfile.team, '- SHOWING');
+              return true;
+            }
             
             // Show if targeted to user's email
-            if (update.target === currentProfile.email) return true;
+            if (update.target === currentProfile.email) {
+              console.log('[HomeScreen] Update targets email', currentProfile.email, '- SHOWING');
+              return true;
+            }
             
+            console.log('[HomeScreen] Update does not match - HIDING');
             return false;
           })
           .map(update => (
