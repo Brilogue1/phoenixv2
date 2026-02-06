@@ -15,8 +15,7 @@ import { UserProfileSelector } from '@/components/user-profile-selector';
 import { fetchFlights, fetchRentalCars, fetchHotelInfo, fetchUpdates, type Flight, type RentalCar, type HotelInfo, type Update } from '@/lib/google-sheets';
 import { NotificationBanner } from '@/components/notification-banner';
 import { AccessDenied } from '@/components/access-denied';
-import { isExecutiveRole, isTeamLeadRole, canSwitchProfiles } from '@/lib/role-utils';
-
+import { isExecutiveRole, isTeamLeadRole, canSwitchProfiles } from '@/lib/role-utils.ts';
 export default function HomeScreen() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, error: profileError } = useUserProfile();
