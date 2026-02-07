@@ -7,10 +7,10 @@ import {
   Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { GradientBackground } from '@/components/gradient-background';
-import { useUserProfile } from '@/hooks/use-user-profile';
 import { fetchSales, SaleTransaction } from '@/lib/google-sheets';
 
 interface TeamSummary {
@@ -21,25 +21,41 @@ interface TeamSummary {
 }
 
 export default function SalesScreen() {
-  const { profile } = useUserProfile();
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
   const [allSales, setAllSales] = useState<SaleTransaction[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>('All Sales');
   const [availableMonths, setAvailableMonths] = useState<string[]>(['All Sales']);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
-  // Demo profile for testing
-  const displayProfile = profile || {
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
+
+  useEffect(() => {
+    loadSalesData();
+  }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      const user = await AsyncStorage.getItem('logged_in_user');
+      if (user) {
+        const parsedUser = JSON.parse(user);
+        console.log('[SalesScreen] Loaded user from AsyncStorage:', parsedUser);
+        setUserProfile(parsedUser);
+      }
+    } catch (error) {
+      console.error('[SalesScreen] Error loading user:', error);
+    }
+  };
+
+  const displayProfile = userProfile || {
     name: 'Demo User',
     email: 'demo@phoenixdm.co',
     team: 'KYT2',
     role: 'Owner',
   };
-
-  useEffect(() => {
-    loadSalesData();
-  }, []);
 
   const loadSalesData = async () => {
     try {
@@ -452,6 +468,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    borderTopColor: 'rgba(255, 255, 255, 0.05'),
   },
 });
