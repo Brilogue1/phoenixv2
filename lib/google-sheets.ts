@@ -413,7 +413,7 @@ export async function fetchSales(): Promise<SaleTransaction[]> {
     percentage: row[10] || '',
     commission: row[11] || '',
     notes: row[12] || '',
-  })).filter((sale: SaleTransaction) => sale.repName && sale.commission); // Filter out empty rows
+  })).filter((sale: SaleTransaction) => sale.team && sale.commission); // Filter out empty rows
 }
 
 
