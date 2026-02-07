@@ -12,7 +12,6 @@ import { ThemedView } from '@/components/themed-view';
 import { GradientBackground } from '@/components/gradient-background';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { fetchSales, SaleTransaction } from '@/lib/google-sheets';
-import { isExecutiveRole } from '@/lib/role-utils';
 
 interface TeamSummary {
   team: string;
@@ -87,32 +86,14 @@ export default function SalesScreen() {
     }
   };
 
-// Determine which teams the user can see
-const getVisibleTeams = (): string[] => {
-  const userTeam = displayProfile.team;
+  // Determine which teams the user can see
+  const getVisibleTeams = (): string[] => {
+    const userTeam = displayProfile.team;
 
-  console.log('[SalesScreen] User team:', userTeam);
+    console.log('[SalesScreen] User team:', userTeam);
 
-  // Isolated teams array
-  const isolatedTeams = ['KYT4', 'KYT5', 'KYT6'];
-
-  // If user is from an isolated team, they can only see their own team
-  if (isolatedTeams.includes(userTeam)) {
-    console.log('[SalesScreen] User from isolated team, showing only:', userTeam);
-    return [userTeam];
-  }
-
-  // Everyone else sees all teams
-  console.log('[SalesScreen] Non-isolated user, showing all teams');
-  const allTeams = new Set(allSales.map(sale => sale.team).filter(Boolean));
-  return Array.from(allTeams).sort();
-};
-
-  // ADD THIS LINE TO SEE WHAT'S HAPPENING:
-  console.log('[SalesScreen] User team:', userTeam, 'User role:', userRole);
-
-  // Isolated teams array
-  const isolatedTeams = ['KYT4', 'KYT5', 'KYT6'];
+    // Isolated teams array
+    const isolatedTeams = ['KYT4', 'KYT5', 'KYT6'];
 
     // If user is from an isolated team, they can only see their own team
     if (isolatedTeams.includes(userTeam)) {
@@ -120,16 +101,8 @@ const getVisibleTeams = (): string[] => {
       return [userTeam];
     }
 
-    // If user is executive/owner, they can see all teams
-    if (isExecutiveRole(userRole)) {
-      console.log('[SalesScreen] Executive user, showing all teams');
-      // Get all unique teams from sales data
-      const allTeams = new Set(allSales.map(sale => sale.team).filter(Boolean));
-      return Array.from(allTeams).sort();
-    }
-
-    // For KYT1, KYT2, KYT3 - show all teams for now
-    console.log('[SalesScreen] Regular user, showing all teams');
+    // Everyone else sees all teams
+    console.log('[SalesScreen] Non-isolated user, showing all teams');
     const allTeams = new Set(allSales.map(sale => sale.team).filter(Boolean));
     return Array.from(allTeams).sort();
   };
@@ -163,7 +136,7 @@ const getVisibleTeams = (): string[] => {
     return visibleTeams.map((team) => {
       const teamDeals = filteredSales.filter((sale) => sale.team === team);
       const totalSales = teamDeals.reduce((sum, sale) => {
-       const netValue = parseFloat(String(sale.net || '0').replace(/[^0-9.-]/g, '')) || 0;
+        const netValue = parseFloat(String(sale.net || '0').replace(/[^0-9.-]/g, '')) || 0;
         return sum + netValue;
       }, 0);
 
