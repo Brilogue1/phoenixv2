@@ -60,7 +60,12 @@ export default function SalesScreen() {
           const dateParts = sale.date.split('/');
           if (dateParts.length >= 2) {
             const month = dateParts[0];
-            const year = dateParts[2] || new Date().getFullYear().toString();
+            let year = dateParts[2];
+            // Handle 2-digit year (26 -> 2026)
+            if (year && year.length === 2) {
+              year = '20' + year;
+            }
+            year = year || new Date().getFullYear().toString();
             months.add(`${month}/${year}`);
           }
         }
@@ -121,7 +126,12 @@ export default function SalesScreen() {
       const dateParts = sale.date.split('/');
       if (dateParts.length < 2) return false;
       const month = dateParts[0];
-      const year = dateParts[2] || new Date().getFullYear().toString();
+      let year = dateParts[2];
+      // Handle 2-digit year (26 -> 2026)
+      if (year && year.length === 2) {
+        year = '20' + year;
+      }
+      year = year || new Date().getFullYear().toString();
       return `${month}/${year}` === selectedMonth;
     });
   };
