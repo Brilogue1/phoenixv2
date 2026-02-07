@@ -246,7 +246,7 @@ export default function SalesScreen() {
                     <View style={styles.statItem}>
                       <ThemedText style={styles.statLabel}>Total Sales</ThemedText>
                       <ThemedText style={styles.statValue}>
-                        {formatCurrency(summary.totalSales)}
+                        {formatcy(summary.totalSales)}
                       </ThemedText>
                     </View>
                     <View style={styles.statItem}>
@@ -271,7 +271,7 @@ export default function SalesScreen() {
                           {deal.client || 'Unknown Client'}
                         </ThemedText>
                         <ThemedText style={styles.dealAmount}>
-                          {formatCurrency(parseFloat(deal.net.replace(/[^0-9.-]/g, '')) || 0)}
+                          {formatCurrency(parseFloat(String(deal.net || '0').replace(/[^0-9.-]/g, '')) || 0)}
                         </ThemedText>
                       </View>
 
