@@ -1,241 +1,176 @@
-import { ScrollView, StyleSheet, View, Pressable } from 'react-native';
 import { useState, useEffect } from 'react';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  View,
+  Pressable,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { GradientBackground } from '@/components/gradient-background';
 import { ThemedText } from '@/components/themed-text';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { fetchSales, type SaleTransaction } from '@/lib/google-sheets';
-import { isExecutiveRole, isTeamLeadRole } from '@/lib/role-utils';
-
-interface RepSummary {
-  repName: string;
-  repEmail: string;
-  team: string;
-  totalCommission: number;
-  transactions: SaleTransaction[];
-}
+import { ThemedView } from '@/components/themed-view';
+import { GradientBackground } from '@/components/gradient-background';
+import { useUserProfile } from '@/hooks/use-user-profile';
+import { fetchSales, SaleTransaction } from '@/lib/google-sheets';
+import { isExecutiveRole } from '@/lib/role-utils';
 
 interface TeamSummary {
   team: string;
-  totalCollected: number;
-  totalNet: number;
-  reps: RepSummary[];
+  totalSales: number;
+  dealCount: number;
+  deals: SaleTransaction[];
 }
 
 export default function SalesScreen() {
+  const { profile } = useUserProfile();
   const insets = useSafeAreaInsets();
-  const backgroundColor = useThemeColor({}, 'background');
-  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
-  const [sales, setSales] = useState<SaleTransaction[]>([]);
+
   const [loading, setLoading] = useState(true);
-  const [selectedMonth, setSelectedMonth] = useState<string>(''); // Format: 'October 2025'
-  const [availableMonths, setAvailableMonths] = useState<string[]>([]);
+  const [allSales, setAllSales] = useState<SaleTransaction[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<string>('All Sales');
+  const [availableMonths, setAvailableMonths] = useState<string[]>(['All Sales']);
+
+  // Demo profile for testing
+  const displayProfile = profile || {
+    name: 'Demo User',
+    email: 'demo@phoenixdm.co',
+    team: 'KYT2',
+    role: 'Owner',
+  };
 
   useEffect(() => {
-    loadProfile();
     loadSalesData();
-    
-    // Set up auto-refresh every 2 minutes (120000 ms)
-    const autoRefreshInterval = setInterval(() => {
-      console.log('[SalesScreen] Auto-refresh triggered (2 min interval)');
-      loadSalesData();
-    }, 120000); // 2 minutes
-    
-    return () => {
-      clearInterval(autoRefreshInterval); // Clean up interval when component unmounts
-    };
   }, []);
 
-  const loadProfile = async () => {
-    const saved = await AsyncStorage.getItem('test_profile');
-    if (saved) {
-      setSelectedEmployee(JSON.parse(saved));
-    }
-  };
-
-  // Parse date string to Date object
-  const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr) return null;
-    
-    // Try parsing Google Sheets Date(YYYY,M,D) format
-    const googleDateMatch = dateStr.match(/Date\((\d+),(\d+),(\d+)\)/);
-    if (googleDateMatch) {
-      const year = parseInt(googleDateMatch[1]);
-      const month = parseInt(googleDateMatch[2]); // Already 0-indexed in Google Sheets
-      const day = parseInt(googleDateMatch[3]);
-      return new Date(year, month, day);
-    }
-    
-    // Try parsing comma-separated format (e.g., "2025,9,9")
-    const commaParts = dateStr.trim().split(',');
-    if (commaParts.length === 3) {
-      const year = parseInt(commaParts[0]);
-      const month = parseInt(commaParts[1]);
-      const day = parseInt(commaParts[2]);
-      if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-        return new Date(year, month, day);
-      }
-    }
-    
-    // Try parsing as-is first
-    let date = new Date(dateStr);
-    if (!isNaN(date.getTime())) return date;
-    
-    // Try parsing MM/DD/YY or MM/DD format
-    const parts = dateStr.trim().split('/');
-    if (parts.length === 3) {
-      // MM/DD/YY format (e.g., "10/9/25")
-      let [month, day, year] = parts.map(p => parseInt(p));
-      // Handle 2-digit year
-      if (year < 100) {
-        year += 2000;
-      }
-      date = new Date(year, month - 1, day);
-      if (!isNaN(date.getTime())) return date;
-    } else if (parts.length === 2) {
-      // MM/DD format (e.g., "11/5") - assume current year 2025
-      let [month, day] = parts.map(p => parseInt(p));
-      date = new Date(2025, month - 1, day);
-      if (!isNaN(date.getTime())) return date;
-    }
-    
-    return null;
-  };
-
   const loadSalesData = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
       console.log('[SalesScreen] Loading sales data...');
+
       const salesData = await fetchSales();
-      console.log(`[SalesScreen] Loaded ${salesData.length} sales records`);
-      console.log('[SalesScreen] First few sales:', salesData.slice(0, 3));
-      setSales(salesData);
-      
+      console.log('[SalesScreen] Loaded sales:', salesData.length);
+
+      setAllSales(salesData);
+
       // Extract unique months from sales data
       const months = new Set<string>();
-      salesData.forEach(sale => {
-        const date = parseDate(sale.date);
-        if (date) {
-          const monthYear = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-          months.add(monthYear);
+      salesData.forEach((sale) => {
+        if (sale.date) {
+          // Parse date and extract month/year
+          const dateParts = sale.date.split('/');
+          if (dateParts.length >= 2) {
+            const month = dateParts[0];
+            const year = dateParts[2] || new Date().getFullYear().toString();
+            months.add(`${month}/${year}`);
+          }
         }
       });
-      
+
       const sortedMonths = Array.from(months).sort((a, b) => {
-        const dateA = new Date(a + ' 1');
-        const dateB = new Date(b + ' 1');
-        return dateA.getTime() - dateB.getTime();
+        const [monthA, yearA] = a.split('/').map(Number);
+        const [monthB, yearB] = b.split('/').map(Number);
+        if (yearA !== yearB) return yearB - yearA;
+        return monthB - monthA;
       });
-      
-      console.log(`[SalesScreen] Found ${sortedMonths.length} unique months:`, sortedMonths);
-      
-      setAvailableMonths(sortedMonths);
-      if (sortedMonths.length > 0) {
-        const defaultMonth = sortedMonths[sortedMonths.length - 1];
-        console.log('[SalesScreen] Setting default month to:', defaultMonth);
-        setSelectedMonth(defaultMonth);
-      } else {
-        console.log('[SalesScreen] No months found, setting to All Sales');
-        setSelectedMonth('All Sales');
-      }
+
+      setAvailableMonths(['All Sales', ...sortedMonths]);
+      console.log('[SalesScreen] Available months:', sortedMonths);
     } catch (error) {
-      console.error('[SalesScreen] Error loading sales data:', error);
+      console.error('[SalesScreen] Error loading sales:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Parse commission string to number
-  const parseCommission = (commStr: string): number => {
-    if (!commStr) return 0;
-    // Remove $ and commas, handle negative numbers
-    const cleaned = String(commStr).replace(/[\$,]/g, '');
-    return parseFloat(cleaned) || 0;
+  // Determine which teams the user can see
+  const getVisibleTeams = (): string[] => {
+    const userTeam = displayProfile.team;
+    const userRole = displayProfile.role;
+
+    // Isolated teams array
+    const isolatedTeams = ['KYT4', 'KYT5', 'KYT6'];
+
+    // If user is from an isolated team, they can only see their own team
+    if (isolatedTeams.includes(userTeam)) {
+      console.log('[SalesScreen] User from isolated team, showing only:', userTeam);
+      return [userTeam];
+    }
+
+    // If user is executive/owner, they can see all teams
+    if (isExecutiveRole(userRole)) {
+      console.log('[SalesScreen] Executive user, showing all teams');
+      // Get all unique teams from sales data
+      const allTeams = new Set(allSales.map(sale => sale.team).filter(Boolean));
+      return Array.from(allTeams).sort();
+    }
+
+    // For KYT1, KYT2, KYT3 - show all teams for now
+    console.log('[SalesScreen] Regular user, showing all teams');
+    const allTeams = new Set(allSales.map(sale => sale.team).filter(Boolean));
+    return Array.from(allTeams).sort();
   };
 
-  // Parse collected/net string to number
-  const parseAmount = (amtStr: string): number => {
-    if (!amtStr) return 0;
-    const cleaned = String(amtStr).replace(/[\$,]/g, '');
-    return parseFloat(cleaned) || 0;
+  // Filter sales by month
+  const filterSalesByMonth = (sales: SaleTransaction[]): SaleTransaction[] => {
+    if (selectedMonth === 'All Sales') {
+      return sales;
+    }
+
+    return sales.filter((sale) => {
+      if (!sale.date) return false;
+      const dateParts = sale.date.split('/');
+      if (dateParts.length < 2) return false;
+      const month = dateParts[0];
+      const year = dateParts[2] || new Date().getFullYear().toString();
+      return `${month}/${year}` === selectedMonth;
+    });
   };
 
-  // Filter sales by selected month
-  const filteredSales = selectedMonth === 'All Sales' || !selectedMonth
-    ? sales
-    : sales.filter(sale => {
-        if (!sale.date) return false;
-        const date = parseDate(sale.date);
-        if (!date) return false;
-        const saleMonth = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        return saleMonth === selectedMonth;
-      });
-  
-  // Aggregate by rep
-  const repSummaries: RepSummary[] = [];
-  filteredSales.forEach(sale => {
-    let rep = repSummaries.find(r => r.repEmail === sale.repEmail);
-    if (!rep) {
-      rep = {
-        repName: sale.repName,
-        repEmail: sale.repEmail,
-        team: sale.team,
-        totalCommission: 0,
-        transactions: []
+  // Generate team summaries
+  const getTeamSummaries = (): TeamSummary[] => {
+    const visibleTeams = getVisibleTeams();
+    const filteredSales = filterSalesByMonth(allSales);
+
+    return visibleTeams.map((team) => {
+      const teamDeals = filteredSales.filter((sale) => sale.team === team);
+      const totalSales = teamDeals.reduce((sum, sale) => {
+        const netValue = parseFloat(sale.net.replace(/[^0-9.-]/g, '')) || 0;
+        return sum + netValue;
+      }, 0);
+
+      return {
+        team,
+        totalSales,
+        dealCount: teamDeals.length,
+        deals: teamDeals.sort((a, b) => {
+          // Sort by date descending
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          return dateB.getTime() - dateA.getTime();
+        }),
       };
-      repSummaries.push(rep);
-    }
-    rep.totalCommission += parseCommission(sale.commission);
-    rep.transactions.push(sale);
-  });
+    }).filter(summary => summary.dealCount > 0); // Only show teams with deals
+  };
 
-  // Sort reps by commission
-  repSummaries.sort((a, b) => b.totalCommission - a.totalCommission);
+  const teamSummaries = getTeamSummaries();
 
-  // Aggregate by team
-  const teamSummaries: TeamSummary[] = [];
-  filteredSales.forEach(sale => {
-    let team = teamSummaries.find(t => t.team === sale.team);
-    if (!team) {
-      team = {
-        team: sale.team,
-        totalCollected: 0,
-        totalNet: 0,
-        reps: []
-      };
-      teamSummaries.push(team);
-    }
-    team.totalCollected += parseAmount(sale.collected);
-    team.totalNet += parseAmount(sale.net);
-  });
-
-  // Add reps to teams
-  teamSummaries.forEach(team => {
-    team.reps = repSummaries.filter(r => r.team === team.team);
-  });
-
-  // Sort teams by net
-  teamSummaries.sort((a, b) => b.totalNet - a.totalNet);
-
-  const isOwner = isExecutiveRole(selectedEmployee?.role);
-  const isTeamLead = isTeamLeadRole(selectedEmployee?.role);
-
-  console.log('[SalesScreen] Selected employee:', selectedEmployee?.name, selectedEmployee?.role);
-  console.log('[SalesScreen] isOwner:', isOwner, 'isTeamLead:', isTeamLead);
-  console.log('[SalesScreen] Total sales:', sales.length, 'Filtered sales:', filteredSales.length);
-  console.log('[SalesScreen] Team summaries:', teamSummaries.length, 'Rep summaries:', repSummaries.length);
-
-  // Filter data based on role
-  const myRep = repSummaries.find(r => r.repEmail === selectedEmployee?.email);
-  const myTeam = teamSummaries.find(t => t.team === selectedEmployee?.team);
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
 
   if (loading) {
     return (
       <GradientBackground>
-        <View style={[styles.container, { paddingTop: insets.top + 60 }]}>
-          <ThemedText style={{ color: '#fff', textAlign: 'center' }}>Loading sales data...</ThemedText>
+        <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#5B6FED" />
+            <ThemedText style={styles.loadingText}>Loading sales data...</ThemedText>
+          </View>
         </View>
       </GradientBackground>
     );
@@ -243,195 +178,129 @@ export default function SalesScreen() {
 
   return (
     <GradientBackground>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: Math.max(insets.top, 20) + 20,
-            paddingBottom: Math.max(insets.bottom, 20) + 80,
-          },
-        ]}
-      >
-        <ThemedText type="title" style={[styles.title, { color: '#fff' }]}>
-          Sales Dashboard
-        </ThemedText>
+      <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: Math.max(insets.bottom, 20) },
+          ]}
+        >
+          {/* Header */}
+          <ThemedText type="title" style={styles.title}>
+            Sales Dashboard
+          </ThemedText>
 
-        {/* Month Navigation */}
-        <View style={styles.monthNav}>
-          <Pressable
-            style={styles.monthNavBtn}
-            onPress={() => {
-              const currentIndex = availableMonths.indexOf(selectedMonth);
-              if (currentIndex > 0) {
-                setSelectedMonth(availableMonths[currentIndex - 1]);
-              }
-            }}
-            disabled={availableMonths.indexOf(selectedMonth) === 0}
+          {/* Month Selector */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.monthSelector}
           >
-            <ThemedText style={[styles.monthNavText, { opacity: availableMonths.indexOf(selectedMonth) === 0 ? 0.3 : 1 }]}>
-              ←
-            </ThemedText>
-          </Pressable>
-          <ThemedText style={styles.monthLabel}>{selectedMonth}</ThemedText>
-          <Pressable
-            style={styles.monthNavBtn}
-            onPress={() => {
-              const currentIndex = availableMonths.indexOf(selectedMonth);
-              if (currentIndex < availableMonths.length - 1) {
-                setSelectedMonth(availableMonths[currentIndex + 1]);
-              }
-            }}
-            disabled={availableMonths.indexOf(selectedMonth) === availableMonths.length - 1}
-          >
-            <ThemedText style={[styles.monthNavText, { opacity: availableMonths.indexOf(selectedMonth) === availableMonths.length - 1 ? 0.3 : 1 }]}>
-              →
-            </ThemedText>
-          </Pressable>
-        </View>
-
-        {/* Rep View - Show their commission */}
-        {!isOwner && !isTeamLead && myRep && (
-          <>
-            <View style={[styles.card, { backgroundColor }]}>
-              <ThemedText type="subtitle" style={styles.cardTitle}>
-                Your {selectedMonth} Commission
-              </ThemedText>
-              <ThemedText style={[styles.bigNumber, { color: '#34C759' }]}>
-                ${myRep.totalCommission.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </ThemedText>
-              <ThemedText style={styles.subtitle}>
-                {myRep.transactions.length} transactions
-              </ThemedText>
-            </View>
-
-            <View style={[styles.card, { backgroundColor }]}>
-              <ThemedText type="subtitle" style={styles.cardTitle}>
-                Your Transactions
-              </ThemedText>
-              {myRep.transactions.map((sale, idx) => (
-                <View key={idx} style={styles.transactionRow}>
-                  <View style={styles.transactionLeft}>
-                    <ThemedText style={styles.clientName}>{sale.client}</ThemedText>
-                    <ThemedText style={styles.transactionDate}>{sale.date}</ThemedText>
-                  </View>
-                  <ThemedText style={[styles.commissionAmount, { color: '#34C759' }]}>
-                    ${parseCommission(sale.commission).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </ThemedText>
-                </View>
-              ))}
-            </View>
-          </>
-        )}
-
-        {/* Team Lead View - Show team collected/net */}
-        {isTeamLead && myTeam && (
-          <>
-            <View style={styles.summaryRow}>
-              <View style={[styles.summaryCard, { backgroundColor }]}>
-                <ThemedText style={styles.summaryLabel}>Team Collected</ThemedText>
-                <ThemedText style={[styles.summaryValue, { color: '#34C759' }]}>
-                  ${myTeam.totalCollected.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {availableMonths.map((month) => (
+              <Pressable
+                key={month}
+                style={[
+                  styles.monthButton,
+                  selectedMonth === month && styles.monthButtonActive,
+                ]}
+                onPress={() => setSelectedMonth(month)}
+              >
+                <ThemedText
+                  style={[
+                    styles.monthButtonText,
+                    selectedMonth === month && styles.monthButtonTextActive,
+                  ]}
+                >
+                  {month}
                 </ThemedText>
-              </View>
-              <View style={[styles.summaryCard, { backgroundColor }]}>
-                <ThemedText style={styles.summaryLabel}>Team Net</ThemedText>
-                <ThemedText style={[styles.summaryValue, { color: '#5B6FED' }]}>
-                  ${myTeam.totalNet.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </ThemedText>
-              </View>
-            </View>
+              </Pressable>
+            ))}
+          </ScrollView>
 
-            <View style={[styles.card, { backgroundColor }]}>
-              <ThemedText type="subtitle" style={styles.cardTitle}>
-                Team Members Performance
+          {/* Team Summaries */}
+          {teamSummaries.length === 0 ? (
+            <View style={styles.emptyState}>
+              <ThemedText style={styles.emptyText}>
+                No sales data for {selectedMonth}
               </ThemedText>
-              {myTeam.reps.map((rep, idx) => (
-                <View key={rep.repEmail} style={styles.rankRow}>
-                  <View style={styles.rankLeft}>
-                    <View style={[styles.rankBadge, { backgroundColor: '#5B6FED' }]}>
-                      <ThemedText style={[styles.rankNumber, { color: '#fff' }]}>
-                        {idx + 1}
-                      </ThemedText>
-                    </View>
-                    <View style={styles.repInfo}>
-                      <ThemedText style={styles.repName}>{rep.repName}</ThemedText>
-                      <ThemedText style={styles.repTeam}>{rep.transactions.length} transactions</ThemedText>
-                    </View>
-                  </View>
-                  <ThemedText style={[styles.salesAmount, { color: '#34C759' }]}>
-                    ${rep.totalCommission.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </View>
+          ) : (
+            teamSummaries.map((summary) => (
+              <View key={summary.team} style={styles.teamCard}>
+                {/* Team Header */}
+                <View style={styles.teamHeader}>
+                  <ThemedText type="subtitle" style={styles.teamName}>
+                    {summary.team}
                   </ThemedText>
-                </View>
-              ))}
-            </View>
-          </>
-        )}
-
-        {/* Owner View - Show all teams and all reps */}
-        {isOwner && (
-          <>
-            <View style={[styles.card, { backgroundColor }]}>
-              <ThemedText type="subtitle" style={styles.cardTitle}>
-                Team Rankings (by Net)
-              </ThemedText>
-              {teamSummaries.map((team, idx) => (
-                <View key={team.team} style={styles.rankRow}>
-                  <View style={styles.rankLeft}>
-                    <View style={[
-                      styles.rankBadge,
-                      { backgroundColor: idx === 0 ? '#FFD700' : idx === 1 ? '#C0C0C0' : idx === 2 ? '#CD7F32' : '#e0e0e0' }
-                    ]}>
-                      <ThemedText style={[styles.rankNumber, { color: idx < 3 ? '#fff' : '#666' }]}>
-                        {idx + 1}
+                  <View style={styles.teamStats}>
+                    <View style={styles.statItem}>
+                      <ThemedText style={styles.statLabel}>Total Sales</ThemedText>
+                      <ThemedText style={styles.statValue}>
+                        {formatCurrency(summary.totalSales)}
                       </ThemedText>
                     </View>
-                    <View style={styles.repInfo}>
-                      <ThemedText style={styles.repName}>{team.team}</ThemedText>
-                      <ThemedText style={styles.repTeam}>{team.reps.length} reps</ThemedText>
-                    </View>
-                  </View>
-                  <View style={styles.rankRight}>
-                    <ThemedText style={[styles.salesAmount, { color: '#34C759' }]}>
-                      ${team.totalCollected.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                    </ThemedText>
-                    <ThemedText style={styles.closeRate}>
-                      Net: ${team.totalNet.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                    </ThemedText>
-                  </View>
-                </View>
-              ))}
-            </View>
-
-            <View style={[styles.card, { backgroundColor }]}>
-              <ThemedText type="subtitle" style={styles.cardTitle}>
-                Top Performers (by Commission)
-              </ThemedText>
-              {repSummaries.slice(0, 10).map((rep, idx) => (
-                <View key={rep.repEmail} style={styles.rankRow}>
-                  <View style={styles.rankLeft}>
-                    <View style={[
-                      styles.rankBadge,
-                      { backgroundColor: idx === 0 ? '#FFD700' : idx === 1 ? '#C0C0C0' : idx === 2 ? '#CD7F32' : '#e0e0e0' }
-                    ]}>
-                      <ThemedText style={[styles.rankNumber, { color: idx < 3 ? '#fff' : '#666' }]}>
-                        {idx + 1}
+                    <View style={styles.statItem}>
+                      <ThemedText style={styles.statLabel}>Deals</ThemedText>
+                      <ThemedText style={styles.statValue}>
+                        {summary.dealCount}
                       </ThemedText>
                     </View>
-                    <View style={styles.repInfo}>
-                      <ThemedText style={styles.repName}>{rep.repName}</ThemedText>
-                      <ThemedText style={styles.repTeam}>{rep.team} • {rep.transactions.length} deals</ThemedText>
-                    </View>
                   </View>
-                  <ThemedText style={[styles.salesAmount, { color: '#34C759' }]}>
-                    ${rep.totalCommission.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </View>
+
+                {/* Deals List */}
+                <View style={styles.dealsContainer}>
+                  <ThemedText type="defaultSemiBold" style={styles.dealsTitle}>
+                    Deals Breakdown
                   </ThemedText>
+
+                  {summary.deals.map((deal, index) => (
+                    <View key={index} style={styles.dealCard}>
+                      <View style={styles.dealHeader}>
+                        <ThemedText style={styles.dealClient}>
+                          {deal.client || 'Unknown Client'}
+                        </ThemedText>
+                        <ThemedText style={styles.dealAmount}>
+                          {formatCurrency(parseFloat(deal.net.replace(/[^0-9.-]/g, '')) || 0)}
+                        </ThemedText>
+                      </View>
+
+                      <View style={styles.dealDetails}>
+                        <View style={styles.dealDetailRow}>
+                          <ThemedText style={styles.dealLabel}>Date:</ThemedText>
+                          <ThemedText style={styles.dealValue}>{deal.date}</ThemedText>
+                        </View>
+
+                        <View style={styles.dealDetailRow}>
+                          <ThemedText style={styles.dealLabel}>Rep:</ThemedText>
+                          <ThemedText style={styles.dealValue}>{deal.repName}</ThemedText>
+                        </View>
+
+                        <View style={styles.dealDetailRow}>
+                          <ThemedText style={styles.dealLabel}>Sale Price:</ThemedText>
+                          <ThemedText style={styles.dealValue}>{deal.salePrice}</ThemedText>
+                        </View>
+
+                        <View style={styles.dealDetailRow}>
+                          <ThemedText style={styles.dealLabel}>Commission:</ThemedText>
+                          <ThemedText style={styles.dealValue}>{deal.commission}</ThemedText>
+                        </View>
+
+                        {deal.notes && (
+                          <View style={styles.dealNotes}>
+                            <ThemedText style={styles.dealLabel}>Notes:</ThemedText>
+                            <ThemedText style={styles.dealValue}>{deal.notes}</ThemedText>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  ))}
                 </View>
-              ))}
-            </View>
-          </>
-        )}
-      </ScrollView>
+              </View>
+            ))
+          )}
+        </ScrollView>
+      </View>
     </GradientBackground>
   );
 }
@@ -441,158 +310,146 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 100,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    opacity: 0.7,
   },
   title: {
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  monthNav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 20,
     marginBottom: 20,
   },
-  monthNavBtn: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+  monthSelector: {
+    marginBottom: 20,
+    maxHeight: 50,
   },
-  monthNavText: {
-    color: '#fff',
-    fontSize: 24,
+  monthButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginRight: 10,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  monthLabel: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    minWidth: 150,
-    textAlign: 'center',
+  monthButtonActive: {
+    backgroundColor: '#5B6FED',
+    borderColor: '#5B6FED',
   },
-  card: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardTitle: {
-    marginBottom: 16,
-  },
-  bigNumber: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginVertical: 16,
-  },
-  subtitle: {
+  monthButtonText: {
     fontSize: 14,
+    fontWeight: '600',
     opacity: 0.7,
-    textAlign: 'center',
   },
-  transactionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  monthButtonTextActive: {
+    opacity: 1,
+    color: '#FFFFFF',
+  },
+  emptyState: {
+    paddingVertical: 60,
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
-  transactionLeft: {
+  emptyText: {
+    fontSize: 16,
+    opacity: 0.5,
+  },
+  teamCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  teamHeader: {
+    marginBottom: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  teamName: {
+    marginBottom: 16,
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  teamStats: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  statItem: {
     flex: 1,
   },
-  clientName: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  transactionDate: {
+  statLabel: {
     fontSize: 12,
     opacity: 0.6,
-    marginTop: 2,
+    marginBottom: 4,
   },
-  commissionAmount: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  summaryCard: {
-    flex: 1,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  summaryLabel: {
-    fontSize: 12,
-    opacity: 0.7,
-    marginBottom: 8,
-  },
-  summaryValue: {
+  statValue: {
     fontSize: 20,
     fontWeight: 'bold',
+    color: '#5B6FED',
   },
-  rankRow: {
+  dealsContainer: {
+    gap: 12,
+  },
+  dealsTitle: {
+    marginBottom: 12,
+    fontSize: 16,
+  },
+  dealCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  dealHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    marginBottom: 12,
+    paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
-  rankLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-  },
-  rankBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rankNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  repInfo: {
-    flex: 1,
-  },
-  repName: {
+  dealClient: {
     fontSize: 16,
     fontWeight: '600',
+    flex: 1,
   },
-  repTeam: {
-    fontSize: 12,
-    opacity: 0.6,
-    marginTop: 2,
-  },
-  rankRight: {
-    alignItems: 'flex-end',
-  },
-  salesAmount: {
-    fontSize: 16,
+  dealAmount: {
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#4CAF50',
   },
-  closeRate: {
-    fontSize: 12,
+  dealDetails: {
+    gap: 8,
+  },
+  dealDetailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dealLabel: {
+    fontSize: 13,
     opacity: 0.6,
-    marginTop: 2,
+  },
+  dealValue: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  dealNotes: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
   },
 });
