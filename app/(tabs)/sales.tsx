@@ -87,10 +87,26 @@ export default function SalesScreen() {
     }
   };
 
-  // Determine which teams the user can see
- const getVisibleTeams = (): string[] => {
+// Determine which teams the user can see
+const getVisibleTeams = (): string[] => {
   const userTeam = displayProfile.team;
-  const userRole = displayProfile.role;
+
+  console.log('[SalesScreen] User team:', userTeam);
+
+  // Isolated teams array
+  const isolatedTeams = ['KYT4', 'KYT5', 'KYT6'];
+
+  // If user is from an isolated team, they can only see their own team
+  if (isolatedTeams.includes(userTeam)) {
+    console.log('[SalesScreen] User from isolated team, showing only:', userTeam);
+    return [userTeam];
+  }
+
+  // Everyone else sees all teams
+  console.log('[SalesScreen] Non-isolated user, showing all teams');
+  const allTeams = new Set(allSales.map(sale => sale.team).filter(Boolean));
+  return Array.from(allTeams).sort();
+};
 
   // ADD THIS LINE TO SEE WHAT'S HAPPENING:
   console.log('[SalesScreen] User team:', userTeam, 'User role:', userRole);
