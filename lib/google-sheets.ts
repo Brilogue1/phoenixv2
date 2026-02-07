@@ -277,8 +277,8 @@ export async function fetchHotelInfo(): Promise<HotelInfo[]> {
 }
 
 /**
- * Submit expense to Google Sheets
- * Uploads receipt to Drive and saves data to Expenses sheet
+ * Submit expense via Google Apps Script
+ * Note: You need to set EXPO_PUBLIC_EXPENSE_SCRIPT_URL in your .env file
  */
 export async function submitExpense(expense: {
   employeeName: string;
@@ -296,15 +296,18 @@ export async function submitExpense(expense: {
   try {
     console.log('[submitExpense] Starting submission:', expense);
 
-    let driveLink = '';
+    // Get the Apps Script URL from environment
+    const scriptUrl = process.env.EXPO_PUBLIC_EXPENSE_SCRIPT_URL;
+    if (!scriptUrl) {
+      throw new Error('Expense script URL not configured. Please add EXPO_PUBLIC_EXPENSE_SCRIPT_URL to your environment variables.');
+    }
 
-    // Upload receipt image to Google Drive if provided
+    let base64Image = '';
+
+    // Convert image to base64 if provided
     if (expense.receiptImageUri) {
-      console.log('[submitExpense] Receipt image provided, uploading to Drive...');
+      console.log('[submitExpense] Processing receipt image...');
       try {
-        const { uploadReceiptImage } = await import('./google-drive-upload');
-        
-        // Convert image URI to base64 if needed
         let imageData = expense.receiptImageUri;
         
         // If it's a file URI (not base64), we need to fetch it first
@@ -320,53 +323,45 @@ export async function submitExpense(expense: {
             reader.readAsDataURL(blob);
           });
         }
-
-        driveLink = await uploadReceiptImage(imageData, expense.date || new Date().toISOString().split('T')[0]);
-        console.log('[submitExpense] Image uploaded successfully:', driveLink);
-      } catch (uploadError) {
-        console.error('[submitExpense] Failed to upload image to Drive:', uploadError);
-        // Continue without the image link - don't fail the entire submission
+        
+        base64Image = imageData;
+        console.log('[submitExpense] Image converted to base64');
+      } catch (imageError) {
+        console.error('[submitExpense] Failed to process image:', imageError);
+        // Continue without image
       }
     }
 
-    // Prepare data for Google Sheets
-    // Columns: A=Employee Name, B=Email, C=Team, D=Date, E=Category, F=Amount, G=Description, H=Status, I=Receipt Link
-    const rowData = [
-      expense.employeeName,
-      expense.employeeEmail,
-      expense.team,
-      expense.date || new Date().toISOString().split('T')[0],
-      expense.category,
-      expense.amount.toFixed(2),
-      expense.description || expense.notes || '',
-      'Pending', // Status
-      driveLink  // Receipt Link (Column I)
-    ];
+    // Prepare data for Apps Script
+    const requestData = {
+      employeeName: expense.employeeName,
+      employeeEmail: expense.employeeEmail,
+      team: expense.team,
+      date: expense.date || new Date().toISOString().split('T')[0],
+      category: expense.category,
+      amount: expense.amount,
+      description: expense.description || expense.notes || '',
+      receiptImageBase64: base64Image
+    };
 
-    // Append to Expenses sheet using Google Sheets API
-    const sheetId = SHEET_ID;
-    const sheetName = 'Expenses';
-    const apiKey = 'AIzaSyAXsWtZb0eNjfJg178m9_XOF9fLYdXh-ew';
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}:append?valueInputOption=USER_ENTERED&key=${apiKey}`;
-
-    console.log('[submitExpense] Appending to Google Sheets...');
+    console.log('[submitExpense] Sending to Apps Script...');
     
-    const response = await fetch(url, {
+    // Call the Apps Script
+    const response = await fetch(scriptUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        values: [rowData]
-      })
+      body: JSON.stringify(requestData),
+      redirect: 'follow'
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[submitExpense] Sheets API error:', errorText);
+      console.error('[submitExpense] Apps Script error:', errorText);
       return {
         success: false,
-        message: 'Failed to save expense to sheet'
+        message: 'Failed to submit expense'
       };
     }
 
@@ -374,8 +369,8 @@ export async function submitExpense(expense: {
     console.log('[submitExpense] Success:', result);
 
     return {
-      success: true,
-      message: 'Expense submitted successfully!'
+      success: result.success || true,
+      message: result.message || 'Expense submitted successfully!'
     };
 
   } catch (error) {
