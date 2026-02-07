@@ -88,12 +88,15 @@ export default function SalesScreen() {
   };
 
   // Determine which teams the user can see
-  const getVisibleTeams = (): string[] => {
-    const userTeam = displayProfile.team;
-    const userRole = displayProfile.role;
+ const getVisibleTeams = (): string[] => {
+  const userTeam = displayProfile.team;
+  const userRole = displayProfile.role;
 
-    // Isolated teams array
-    const isolatedTeams = ['KYT4', 'KYT5', 'KYT6'];
+  // ADD THIS LINE TO SEE WHAT'S HAPPENING:
+  console.log('[SalesScreen] User team:', userTeam, 'User role:', userRole);
+
+  // Isolated teams array
+  const isolatedTeams = ['KYT4', 'KYT5', 'KYT6'];
 
     // If user is from an isolated team, they can only see their own team
     if (isolatedTeams.includes(userTeam)) {
