@@ -246,7 +246,7 @@ export default function SalesScreen() {
                     <View style={styles.statItem}>
                       <ThemedText style={styles.statLabel}>Total Sales</ThemedText>
                       <ThemedText style={styles.statValue}>
-                        {formatcy(summary.totalSales)}
+                        {formatCurrency(summary.totalSales)}
                       </ThemedText>
                     </View>
                     <View style={styles.statItem}>
