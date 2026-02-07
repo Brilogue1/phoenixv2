@@ -468,6 +468,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05'),
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
   },
 });
