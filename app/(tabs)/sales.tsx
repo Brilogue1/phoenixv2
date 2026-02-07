@@ -144,7 +144,7 @@ export default function SalesScreen() {
     return visibleTeams.map((team) => {
       const teamDeals = filteredSales.filter((sale) => sale.team === team);
       const totalSales = teamDeals.reduce((sum, sale) => {
-        const netValue = parseFloat(sale.net.replace(/[^0-9.-]/g, '')) || 0;
+       const netValue = parseFloat(String(sale.net || '0').replace(/[^0-9.-]/g, '')) || 0;
         return sum + netValue;
       }, 0);
 
