@@ -50,19 +50,20 @@ export default function TabLayout() {
 
   return (
     <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: '#8B5CF6', // Bright purple when active
-        tabBarInactiveTintColor: '#A78BFA', // Lighter purple when inactive (always visible)
-        headerShown: false,
-        tabBarButton: HapticTab,
-        // Ensure tab bar respects bottom safe area for devices with home indicators
-        tabBarStyle: {
-          paddingBottom: insets.bottom,
-          height: 49 + insets.bottom, // Default tab bar height (49) + safe area
-          backgroundColor: '#FFFFFF', // White background for contrast
-        },
-      }}
-    >
+  screenOptions={{
+    tabBarActiveTintColor: PhoenixColors.phoenixBlue, // '#8AB4F8'
+    tabBarInactiveTintColor: PhoenixColors.mutedText, // Gray
+    headerShown: false,
+    tabBarButton: HapticTab,
+    tabBarStyle: {
+      paddingBottom: insets.bottom,
+      height: 49 + insets.bottom,
+      backgroundColor: '#0A0A0A', // Slightly lighter black
+      borderTopColor: 'rgba(138, 180, 248, 0.3)', // Phoenix blue top border
+      borderTopWidth: 1,
+    },
+  }}
+>
       <Tabs.Screen
         name="index"
         options={{
