@@ -9,9 +9,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { GradientBackground } from '@/components/gradient-background';
 import { fetchSales, SaleTransaction } from '@/lib/google-sheets';
+import { PhoenixColors } from '@/constants/theme';
 
 interface TeamSummary {
   team: string;
@@ -71,12 +71,10 @@ export default function SalesScreen() {
       const months = new Set<string>();
       salesData.forEach((sale) => {
         if (sale.date) {
-          // Parse date and extract month/year
           const dateParts = sale.date.split('/');
           if (dateParts.length >= 2) {
             const month = dateParts[0];
             let year = dateParts[2];
-            // Handle 2-digit year (26 -> 2026)
             if (year && year.length === 2) {
               year = '20' + year;
             }
@@ -102,28 +100,22 @@ export default function SalesScreen() {
     }
   };
 
-  // Determine which teams the user can see
   const getVisibleTeams = (): string[] => {
     const userTeam = displayProfile.team;
-
     console.log('[SalesScreen] User team:', userTeam);
 
-    // Isolated teams array
     const isolatedTeams = ['KYT4', 'KYT5', 'KYT6'];
 
-    // If user is from an isolated team, they can only see their own team
     if (isolatedTeams.includes(userTeam)) {
       console.log('[SalesScreen] User from isolated team, showing only:', userTeam);
       return [userTeam];
     }
 
-    // Everyone else sees all teams
     console.log('[SalesScreen] Non-isolated user, showing all teams');
     const allTeams = new Set(allSales.map(sale => sale.team).filter(Boolean));
     return Array.from(allTeams).sort();
   };
 
-  // Filter sales by month
   const filterSalesByMonth = (sales: SaleTransaction[]): SaleTransaction[] => {
     if (selectedMonth === 'All Sales') {
       return sales;
@@ -135,7 +127,6 @@ export default function SalesScreen() {
       if (dateParts.length < 2) return false;
       const month = dateParts[0];
       let year = dateParts[2];
-      // Handle 2-digit year (26 -> 2026)
       if (year && year.length === 2) {
         year = '20' + year;
       }
@@ -144,7 +135,6 @@ export default function SalesScreen() {
     });
   };
 
-  // Generate team summaries
   const getTeamSummaries = (): TeamSummary[] => {
     const visibleTeams = getVisibleTeams();
     const filteredSales = filterSalesByMonth(allSales);
@@ -161,13 +151,12 @@ export default function SalesScreen() {
         totalSales,
         dealCount: teamDeals.length,
         deals: teamDeals.sort((a, b) => {
-          // Sort by date descending
           const dateA = new Date(a.date);
           const dateB = new Date(b.date);
           return dateB.getTime() - dateA.getTime();
         }),
       };
-    }).filter(summary => summary.dealCount > 0); // Only show teams with deals
+    }).filter(summary => summary.dealCount > 0);
   };
 
   const teamSummaries = getTeamSummaries();
@@ -186,7 +175,7 @@ export default function SalesScreen() {
       <GradientBackground>
         <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#5B6FED" />
+            <ActivityIndicator size="large" color={PhoenixColors.phoenixBlue} />
             <ThemedText style={styles.loadingText}>Loading sales data...</ThemedText>
           </View>
         </View>
@@ -203,12 +192,10 @@ export default function SalesScreen() {
             { paddingBottom: Math.max(insets.bottom, 20) },
           ]}
         >
-          {/* Header */}
           <ThemedText type="title" style={styles.title}>
             Sales Dashboard
           </ThemedText>
 
-          {/* Month Selector */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -235,7 +222,6 @@ export default function SalesScreen() {
             ))}
           </ScrollView>
 
-          {/* Team Summaries */}
           {teamSummaries.length === 0 ? (
             <View style={styles.emptyState}>
               <ThemedText style={styles.emptyText}>
@@ -245,7 +231,6 @@ export default function SalesScreen() {
           ) : (
             teamSummaries.map((summary) => (
               <View key={summary.team} style={styles.teamCard}>
-                {/* Team Header */}
                 <View style={styles.teamHeader}>
                   <ThemedText type="subtitle" style={styles.teamName}>
                     {summary.team}
@@ -266,7 +251,6 @@ export default function SalesScreen() {
                   </View>
                 </View>
 
-                {/* Deals List */}
                 <View style={styles.dealsContainer}>
                   <ThemedText type="defaultSemiBold" style={styles.dealsTitle}>
                     Deals Breakdown
@@ -340,10 +324,11 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    opacity: 0.7,
+    color: PhoenixColors.lightText,
   },
   title: {
     marginBottom: 20,
+    color: PhoenixColors.white,
   },
   monthSelector: {
     marginBottom: 20,
@@ -354,22 +339,22 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginRight: 10,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: PhoenixColors.gray,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: PhoenixColors.cardBorder,
   },
   monthButtonActive: {
-    backgroundColor: '#5B6FED',
-    borderColor: '#5B6FED',
+    backgroundColor: PhoenixColors.phoenixBlue,
+    borderColor: PhoenixColors.phoenixBlue,
   },
   monthButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    opacity: 0.7,
+    color: PhoenixColors.mutedText,
   },
   monthButtonTextActive: {
-    opacity: 1,
-    color: '#FFFFFF',
+    color: PhoenixColors.black,
+    fontWeight: '700',
   },
   emptyState: {
     paddingVertical: 60,
@@ -377,26 +362,27 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    opacity: 0.5,
+    color: PhoenixColors.mutedText,
   },
   teamCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: PhoenixColors.cardBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: PhoenixColors.cardBorder,
   },
   teamHeader: {
     marginBottom: 20,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: PhoenixColors.cardBorder,
   },
   teamName: {
     marginBottom: 16,
     fontSize: 24,
     fontWeight: 'bold',
+    color: PhoenixColors.white,
   },
   teamStats: {
     flexDirection: 'row',
@@ -407,13 +393,13 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    opacity: 0.6,
+    color: PhoenixColors.mutedText,
     marginBottom: 4,
   },
   statValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#5B6FED',
+    color: PhoenixColors.phoenixBlue,
   },
   dealsContainer: {
     gap: 12,
@@ -421,13 +407,14 @@ const styles = StyleSheet.create({
   dealsTitle: {
     marginBottom: 12,
     fontSize: 16,
+    color: PhoenixColors.white,
   },
   dealCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: PhoenixColors.darkGray,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: PhoenixColors.cardBorder,
   },
   dealHeader: {
     flexDirection: 'row',
@@ -436,17 +423,18 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    borderBottomColor: PhoenixColors.cardBorder,
   },
   dealClient: {
     fontSize: 16,
     fontWeight: '600',
     flex: 1,
+    color: PhoenixColors.white,
   },
   dealAmount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: PhoenixColors.success,
   },
   dealDetails: {
     gap: 8,
@@ -458,16 +446,17 @@ const styles = StyleSheet.create({
   },
   dealLabel: {
     fontSize: 13,
-    opacity: 0.6,
+    color: PhoenixColors.mutedText,
   },
   dealValue: {
     fontSize: 13,
     fontWeight: '500',
+    color: PhoenixColors.lightText,
   },
   dealNotes: {
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    borderTopColor: PhoenixColors.cardBorder,
   },
 });
