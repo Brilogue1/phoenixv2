@@ -1,28 +1,31 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet } from 'react-native';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { View, StyleSheet } from 'react-native';
+import { PhoenixColors } from '@/constants/theme';
 
-export function GradientBackground({ children }: { children: React.ReactNode }) {
-  const colorScheme = useColorScheme();
-  const colors: [string, string] = colorScheme === 'dark' 
-    ? [Colors.dark.primary, Colors.dark.secondary]
-    : [Colors.light.primary, Colors.light.secondary];
+interface GradientBackgroundProps {
+  children: React.ReactNode;
+}
 
+export function GradientBackground({ children }: GradientBackgroundProps) {
   return (
-    <LinearGradient
-      colors={colors}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.gradient}
-    >
+    <View style={styles.container}>
+      {/* Solid black background instead of gradient */}
+      <View style={styles.background} />
       {children}
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  gradient: {
+  container: {
     flex: 1,
+  },
+  background: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: PhoenixColors.black,
   },
 });
