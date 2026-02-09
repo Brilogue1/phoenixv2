@@ -1,75 +1,56 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Phoenix DM App Theme Colors
+ * Black background with light blue accents matching the Phoenix logo
  */
 
-import { Platform } from "react-native";
-
-const tintColorLight = "#4A5FE8";
-const tintColorDark = "#8B5CF6";
+const tintColorLight = '#8AB4F8'; // Phoenix blue
+const tintColorDark = '#8AB4F8'; // Phoenix blue
 
 export const Colors = {
   light: {
-    text: "#11181C",
-    textSecondary: "#687076",
-    background: "#fff",
+    text: '#FFFFFF',
+    background: '#000000',
     tint: tintColorLight,
-    icon: "#687076",
-    tabIconDefault: "#687076",
+    icon: '#9BA1A6',
+    tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorLight,
-    // Phoenix brand colors
-    primary: "#4A5FE8",
-    secondary: "#8B5CF6",
-    success: "#34C759",
-    warning: "#FF9500",
-    error: "#FF3B30",
-    // Card accents
-    accentBlue: "#007AFF",
-    accentPurple: "#8B5CF6",
-    accentOrange: "#FF9500",
   },
   dark: {
-    text: "#ECEDEE",
-    textSecondary: "#9BA1A6",
-    background: "#151718",
+    text: '#FFFFFF',
+    background: '#000000',
     tint: tintColorDark,
-    icon: "#9BA1A6",
-    tabIconDefault: "#9BA1A6",
+    icon: '#9BA1A6',
+    tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
-    // Phoenix brand colors (adjusted for dark mode)
-    primary: "#6B7FFF",
-    secondary: "#A78BFA",
-    success: "#34C759",
-    warning: "#FF9500",
-    error: "#FF3B30",
-    // Card accents
-    accentBlue: "#007AFF",
-    accentPurple: "#A78BFA",
-    accentOrange: "#FF9500",
   },
 };
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: "system-ui",
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: "ui-serif",
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: "ui-rounded",
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: "ui-monospace",
-  },
-  default: {
-    sans: "normal",
-    serif: "serif",
-    rounded: "normal",
-    mono: "monospace",
-  },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-  },
-});
+// Phoenix DM Color Palette
+export const PhoenixColors = {
+  // Primary
+  phoenixBlue: '#8AB4F8',
+  phoenixBlueDark: '#6B94D8',
+  phoenixBlueLight: '#AAC4F8',
+  
+  // Background
+  black: '#000000',
+  darkGray: '#0A0A0A',
+  gray: '#1A1A1A',
+  lightGray: '#2A2A2A',
+  
+  // Text
+  white: '#FFFFFF',
+  lightText: '#E0E0E0',
+  mutedText: '#9BA1A6',
+  
+  // Status
+  success: '#4CAF50',
+  error: '#F44336',
+  warning: '#FF9800',
+  info: '#2196F3',
+  
+  // Overlays
+  overlay: 'rgba(0, 0, 0, 0.7)',
+  cardBackground: 'rgba(26, 26, 26, 0.8)',
+  cardBorder: 'rgba(138, 180, 248, 0.2)',
+};
