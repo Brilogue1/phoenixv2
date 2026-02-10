@@ -1,5 +1,4 @@
 import { View, StyleSheet } from 'react-native';
-import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientBackground } from '@/components/gradient-background';
 import { ThemedText } from '@/components/themed-text';
@@ -10,18 +9,19 @@ export default function CalculatorScreen() {
   return (
     <GradientBackground>
       <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
-        {/* Header */}
         <ThemedText type="title" style={styles.title}>
           Calculator
         </ThemedText>
 
-        {/* WebView Calculator */}
-        <View style={styles.webViewContainer}>
-          <WebView
-            source={{ uri: 'https://calculator.phoenix.co' }}
-            style={styles.webView}
-            startInLoadingState={true}
-            scalesPageToFit={true}
+        <View style={styles.iframeContainer}>
+          <iframe
+            src="https://calculator.phoenix.co"
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              borderRadius: '16px',
+            }}
           />
         </View>
       </View>
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     color: '#FFFFFF',
   },
-  webViewContainer: {
+  iframeContainer: {
     flex: 1,
     marginHorizontal: 20,
     marginBottom: 20,
@@ -46,10 +46,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(138, 180, 248, 0.2)',
-    backgroundColor: '#0A0A0A',
-  },
-  webView: {
-    flex: 1,
     backgroundColor: '#0A0A0A',
   },
 });
