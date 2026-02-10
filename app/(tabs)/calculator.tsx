@@ -21,6 +21,7 @@ export default function CalculatorScreen() {
               height: '100%',
               border: 'none',
               borderRadius: '16px',
+              backgroundColor: 'transparent',
             }}
           />
         </View>
@@ -46,6 +47,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(138, 180, 248, 0.2)',
-    backgroundColor: '#0A0A0A',
+    backgroundColor: 'transparent', // Changed from #0A0A0A
   },
 });
