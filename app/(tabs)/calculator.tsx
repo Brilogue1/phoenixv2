@@ -15,7 +15,7 @@ export default function CalculatorScreen() {
 
         <View style={styles.iframeContainer}>
           <iframe
-            src="https://calculator.phoenix.co"
+            src="https://calculator.phoenixdm.co"
             style={{
               width: '100%',
               height: '100%',
