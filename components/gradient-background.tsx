@@ -1,6 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { View, StyleSheet } from 'react-native';
-import { PhoenixColors } from '@/constants/theme';
 
 interface GradientBackgroundProps {
   children: React.ReactNode;
@@ -26,6 +25,6 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: PhoenixColors.black,
+    backgroundColor: '#000000',
   },
 });
