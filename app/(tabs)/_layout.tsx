@@ -69,7 +69,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={28} 
-              name="house.fill"
+              name="house"
               color={color}
             />
           ),
@@ -82,7 +82,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={28} 
-              name="list.clipboard"
+              name="doc.text"
               color={color}
             />
           ),
@@ -95,7 +95,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={28} 
-              name="number.square"
+              name="plus.forwardslash.minus"
               color={color}
             />
           ),
@@ -121,7 +121,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={28} 
-              name="creditcard"
+              name="banknote"
               color={color}
             />
           ),
