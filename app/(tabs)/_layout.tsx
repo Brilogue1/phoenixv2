@@ -6,11 +6,9 @@ import { ActivityIndicator, View } from "react-native";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export default function TabLayout() {
-  // IMPORTANT: All hooks must be called at the top, before any conditional returns
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -38,8 +36,8 @@ export default function TabLayout() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000000' }}>
+        <ActivityIndicator size="large" color="#8AB4F8" />
       </View>
     );
   }
@@ -50,20 +48,20 @@ export default function TabLayout() {
 
   return (
     <Tabs
-  screenOptions={{
-    tabBarActiveTintColor: PhoenixColors.phoenixBlue, // '#8AB4F8'
-    tabBarInactiveTintColor: PhoenixColors.mutedText, // Gray
-    headerShown: false,
-    tabBarButton: HapticTab,
-    tabBarStyle: {
-      paddingBottom: insets.bottom,
-      height: 49 + insets.bottom,
-      backgroundColor: '#0A0A0A', // Slightly lighter black
-      borderTopColor: 'rgba(138, 180, 248, 0.3)', // Phoenix blue top border
-      borderTopWidth: 1,
-    },
-  }}
->
+      screenOptions={{
+        tabBarActiveTintColor: '#8AB4F8',
+        tabBarInactiveTintColor: '#9BA1A6',
+        headerShown: false,
+        tabBarButton: HapticTab,
+        tabBarStyle: {
+          paddingBottom: insets.bottom,
+          height: 49 + insets.bottom,
+          backgroundColor: '#0A0A0A',
+          borderTopColor: 'rgba(138, 180, 248, 0.3)',
+          borderTopWidth: 1,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
@@ -72,7 +70,7 @@ export default function TabLayout() {
             <IconSymbol 
               size={28} 
               name={focused ? "house.fill" : "house"} 
-              color={color || '#8B5CF6'} 
+              color={color || '#8AB4F8'} 
             />
           ),
         }}
@@ -85,7 +83,7 @@ export default function TabLayout() {
             <IconSymbol 
               size={28} 
               name={focused ? "list.clipboard.fill" : "list.clipboard"} 
-              color={color || '#8B5CF6'} 
+              color={color || '#8AB4F8'} 
             />
           ),
         }}
@@ -98,7 +96,7 @@ export default function TabLayout() {
             <IconSymbol 
               size={28} 
               name={focused ? "number.square.fill" : "number.square"} 
-              color={color || '#8B5CF6'} 
+              color={color || '#8AB4F8'} 
             />
           ),
         }}
@@ -111,7 +109,7 @@ export default function TabLayout() {
             <IconSymbol 
               size={28} 
               name={focused ? "dollarsign.circle.fill" : "dollarsign.circle"} 
-              color={color || '#8B5CF6'} 
+              color={color || '#8AB4F8'} 
             />
           ),
         }}
@@ -124,7 +122,7 @@ export default function TabLayout() {
             <IconSymbol 
               size={28} 
               name={focused ? "creditcard.fill" : "creditcard"} 
-              color={color || '#8B5CF6'} 
+              color={color || '#8AB4F8'} 
             />
           ),
         }}
@@ -137,7 +135,7 @@ export default function TabLayout() {
             <IconSymbol 
               size={28} 
               name={focused ? "chart.bar.fill" : "chart.bar"} 
-              color={color || '#8B5CF6'} 
+              color={color || '#8AB4F8'} 
             />
           ),
         }}
