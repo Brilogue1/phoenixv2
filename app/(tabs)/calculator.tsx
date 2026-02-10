@@ -8,7 +8,7 @@ export default function CalculatorScreen() {
 
   return (
     <GradientBackground>
-      <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.container, { paddingTop: insets.top + 10, paddingBottom: insets.bottom }]}>
         <ThemedText type="title" style={styles.title}>
           Calculator
         </ThemedText>
@@ -21,7 +21,7 @@ export default function CalculatorScreen() {
               height: '100%',
               border: 'none',
               borderRadius: '16px',
-              backgroundColor: 'transparent',
+              backgroundColor: '#000000',
             }}
           />
         </View>
@@ -33,6 +33,7 @@ export default function CalculatorScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    overflow: 'hidden', // Hide outer scrollbar
   },
   title: {
     marginBottom: 20,
@@ -47,6 +48,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(138, 180, 248, 0.2)',
-    backgroundColor: 'transparent', // Changed from #0A0A0A
+    backgroundColor: '#000000',
   },
 });
