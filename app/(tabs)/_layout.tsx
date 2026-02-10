@@ -69,7 +69,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={28} 
-              name="house"
+              name="house.fill"
               color={color}
             />
           ),
@@ -82,7 +82,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={28} 
-              name="doc.text"
+              name="doc.text.fill"
               color={color}
             />
           ),
@@ -95,7 +95,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={28} 
-              name="plus.forwardslash.minus"
+              name="plusminus.circle.fill"
               color={color}
             />
           ),
@@ -108,7 +108,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={28} 
-              name="dollarsign.circle"
+              name="dollarsign.circle.fill"
               color={color}
             />
           ),
@@ -121,7 +121,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={28} 
-              name="banknote"
+              name="banknote.fill"
               color={color}
             />
           ),
@@ -134,7 +134,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={28} 
-              name="chart.bar"
+              name="chart.bar.fill"
               color={color}
             />
           ),
