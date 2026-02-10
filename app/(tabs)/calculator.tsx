@@ -3,7 +3,6 @@ import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientBackground } from '@/components/gradient-background';
 import { ThemedText } from '@/components/themed-text';
-import { PhoenixColors } from '@/constants/theme';
 
 export default function CalculatorScreen() {
   const insets = useSafeAreaInsets();
@@ -37,7 +36,7 @@ const styles = StyleSheet.create({
   title: {
     marginBottom: 20,
     paddingHorizontal: 20,
-    color: PhoenixColors.white,
+    color: '#FFFFFF',
   },
   webViewContainer: {
     flex: 1,
@@ -46,11 +45,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: PhoenixColors.cardBorder,
-    backgroundColor: PhoenixColors.darkGray,
+    borderColor: 'rgba(138, 180, 248, 0.2)',
+    backgroundColor: '#0A0A0A',
   },
   webView: {
     flex: 1,
-    backgroundColor: PhoenixColors.darkGray,
+    backgroundColor: '#0A0A0A',
   },
 });
