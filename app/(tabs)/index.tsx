@@ -16,7 +16,6 @@ import { fetchFlights, fetchRentalCars, fetchHotelInfo, fetchUpdates, type Fligh
 import { NotificationBanner } from '@/components/notification-banner';
 import { AccessDenied } from '@/components/access-denied';
 import { isExecutiveRole, isTeamLeadRole, canSwitchProfiles } from '@/lib/role-utils';
-import { PhoenixColors } from '@/constants/theme';
 
 export default function HomeScreen() {
   const { isAuthenticated, loading: authLoading } = useAuth();
@@ -195,7 +194,7 @@ export default function HomeScreen() {
     return (
       <GradientBackground>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={PhoenixColors.phoenixBlue} />
+          <ActivityIndicator size="large" color="#fff" />
         </View>
       </GradientBackground>
     );
@@ -205,6 +204,12 @@ export default function HomeScreen() {
   if (isAuthenticated && profileError) {
     return <AccessDenied />;
   }
+
+  // Allow access without authentication for now
+  // if (!isAuthenticated) {
+  //   router.replace('/modal');
+  //   return null;
+  // }
 
   // Use test profile if available, otherwise use db profile or default to Lance (Owner)
   const displayProfile = testProfile || profile || {
@@ -287,6 +292,8 @@ export default function HomeScreen() {
 
   return (
     <GradientBackground>
+
+
       <ScrollView
         style={styles.container}
         contentContainerStyle={[
@@ -296,13 +303,7 @@ export default function HomeScreen() {
             paddingBottom: Math.max(insets.bottom, 20),
           },
         ]}
-        refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={onRefresh} 
-            tintColor={PhoenixColors.phoenixBlue} 
-          />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
       >
         {/* Notification Banners */}
         {updates
@@ -313,11 +314,12 @@ export default function HomeScreen() {
             // Check date range if start/end dates are provided
             if (update.startDate || update.endDate) {
               const now = new Date();
-              now.setHours(0, 0, 0, 0);
+              now.setHours(0, 0, 0, 0); // Set to midnight for date comparison
               
+              // Parse start date (format: MM/DD/YYYY)
               if (update.startDate) {
                 const [month, day, year] = update.startDate.split('/').map(Number);
-                const startDate = new Date(year, month - 1, day, 5, 0, 0);
+                const startDate = new Date(year, month - 1, day, 5, 0, 0); // 5am on start date
                 
                 if (now < startDate) {
                   console.log('[HomeScreen] Current date before start date - HIDING');
@@ -325,9 +327,10 @@ export default function HomeScreen() {
                 }
               }
               
+              // Parse end date (format: MM/DD/YYYY)
               if (update.endDate) {
                 const [month, day, year] = update.endDate.split('/').map(Number);
-                const endDate = new Date(year, month - 1, day, 23, 59, 59);
+                const endDate = new Date(year, month - 1, day, 23, 59, 59); // Midnight (11:59:59pm) on end date
                 
                 if (now > endDate) {
                   console.log('[HomeScreen] Current date after end date - HIDING');
@@ -338,11 +341,13 @@ export default function HomeScreen() {
               console.log('[HomeScreen] Date is within range');
             }
             
+            // Filter out dismissed updates
             if (dismissedUpdates.includes(update.id)) {
               console.log('[HomeScreen] Update', update.id, 'is dismissed');
               return false;
             }
             
+            // Check targeting
             const currentProfile = testProfile || profile;
             console.log('[HomeScreen] Current profile for filtering:', currentProfile?.email, currentProfile?.team);
             
@@ -351,16 +356,19 @@ export default function HomeScreen() {
               return update.target === 'All';
             }
             
+            // Show if targeted to All
             if (update.target === 'All') {
               console.log('[HomeScreen] Update targets All - SHOWING');
               return true;
             }
             
+            // Show if targeted to user's team
             if (update.target === currentProfile.team) {
               console.log('[HomeScreen] Update targets team', currentProfile.team, '- SHOWING');
               return true;
             }
             
+            // Show if targeted to user's email
             if (update.target === currentProfile.email) {
               console.log('[HomeScreen] Update targets email', currentProfile.email, '- SHOWING');
               return true;
@@ -385,6 +393,7 @@ export default function HomeScreen() {
           <Pressable
             style={styles.profileCardPressable}
             onPress={() => {
+              // Only show profile selector for executives and Team Leads
               if (loggedInUser && canSwitchProfiles(loggedInUser.role)) {
                 setShowProfileSelector(true);
               }
@@ -395,12 +404,12 @@ export default function HomeScreen() {
               style={styles.phoenixLogo}
             />
             <View style={styles.profileInfo}>
-              <ThemedText type="subtitle" style={styles.profileName}>
+              <ThemedText type="subtitle" style={{ color: '#fff' }}>
                 {displayProfile.name}
               </ThemedText>
-              <ThemedText style={styles.profileTeam}>{displayProfile.team}</ThemedText>
+              <ThemedText style={{ color: 'rgba(255,255,255,0.8)' }}>{displayProfile.team}</ThemedText>
               {loggedInUser && canSwitchProfiles(loggedInUser.role) && (
-                <ThemedText style={styles.profileHint}>Tap to change profile</ThemedText>
+                <ThemedText style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>Tap to change profile</ThemedText>
               )}
             </View>
           </Pressable>
@@ -409,8 +418,10 @@ export default function HomeScreen() {
           <Pressable
             style={styles.logoutButton}
             onPress={async () => {
+              // Clear all stored data
               await AsyncStorage.removeItem('logged_in_user');
               await AsyncStorage.removeItem('test_profile');
+              // Navigate to login
               router.replace('/login');
             }}
           >
@@ -429,12 +440,12 @@ export default function HomeScreen() {
         />
 
         {loading ? (
-          <ActivityIndicator size="large" color={PhoenixColors.phoenixBlue} />
+          <ActivityIndicator size="large" color="#fff" />
         ) : (
           <>
             {/* Flight Info */}
             {flight && (
-              <ImprovedCard title="✈️ Flight Information" accentColor={PhoenixColors.phoenixBlue}>
+              <ImprovedCard title="✈️ Flight Information" accentColor="#007AFF">
                 <CardDetailRow
                   label="Date"
                   value={flight[`${weekKey}FlyDate` as keyof Flight] as string}
@@ -456,7 +467,7 @@ export default function HomeScreen() {
 
             {/* Rental Car */}
             {rentalCar && (
-              <ImprovedCard title="🚗 Rental Car" accentColor={PhoenixColors.phoenixBlue}>
+              <ImprovedCard title="🚗 Rental Car" accentColor="#8E44AD">
                 <CardDetailRow
                   label="Date"
                   value={rentalCar[`${weekKey}Date` as keyof RentalCar] as string}
@@ -482,7 +493,7 @@ export default function HomeScreen() {
 
             {/* Hotel & Events */}
             {hotel && (
-              <ImprovedCard title="🏨 Hotel & Events" accentColor={PhoenixColors.phoenixBlue}>
+              <ImprovedCard title="🏨 Hotel & Events" accentColor="#FF9500">
                 <CardDetailRow
                   label="Date"
                   value={hotel[`${weekKey}Date` as keyof HotelInfo] as string}
@@ -525,6 +536,7 @@ export default function HomeScreen() {
             canSeeAllTeams: isExecutiveRole(newProfile.role),
             canSeeTeamData: isTeamLeadRole(newProfile.role) || isExecutiveRole(newProfile.role),
           });
+          // Reload data with new profile
           loadData();
         }}
       />
@@ -579,28 +591,18 @@ const styles = StyleSheet.create({
   profileInfo: {
     flex: 1,
   },
-  profileName: {
-    color: PhoenixColors.white,
-  },
-  profileTeam: {
-    color: PhoenixColors.lightText,
-  },
-  profileHint: {
-    color: PhoenixColors.mutedText,
-    fontSize: 12,
-  },
   logoutButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: PhoenixColors.gray,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: PhoenixColors.cardBorder,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   logoutText: {
-    color: PhoenixColors.white,
+    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
