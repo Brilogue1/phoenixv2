@@ -1,7 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { ThemedText } from './themed-text';
 import { IconSymbol } from './ui/icon-symbol';
-import { useThemeColor } from '@/hooks/use-theme-color';
 
 interface WeekNavigationProps {
   currentWeek: number;
@@ -20,9 +19,9 @@ export function WeekNavigation({
   canGoPrevious,
   canGoNext,
 }: WeekNavigationProps) {
-  const backgroundColor = useThemeColor({}, 'background');
-  const primaryColor = useThemeColor({}, 'primary');
-  const disabledColor = useThemeColor({}, 'textSecondary');
+  const phoenixBlue = '#8AB4F8';
+  const disabledColor = '#9BA1A6';
+  const backgroundColor = '#1A1A1A';
 
   return (
     <View style={styles.container}>
@@ -38,12 +37,12 @@ export function WeekNavigation({
         <IconSymbol
           name="chevron.left"
           size={24}
-          color={canGoPrevious ? primaryColor : disabledColor}
+          color={canGoPrevious ? phoenixBlue : disabledColor}
         />
       </Pressable>
 
-      <View style={[styles.weekLabel, { backgroundColor, borderColor: primaryColor }]}>
-        <ThemedText type="defaultSemiBold" style={{ color: primaryColor }}>
+      <View style={[styles.weekLabel, { backgroundColor, borderColor: phoenixBlue }]}>
+        <ThemedText type="defaultSemiBold" style={{ color: phoenixBlue }}>
           {weekLabel}
         </ThemedText>
       </View>
@@ -60,7 +59,7 @@ export function WeekNavigation({
         <IconSymbol
           name="chevron.right"
           size={24}
-          color={canGoNext ? primaryColor : disabledColor}
+          color={canGoNext ? phoenixBlue : disabledColor}
         />
       </Pressable>
     </View>
